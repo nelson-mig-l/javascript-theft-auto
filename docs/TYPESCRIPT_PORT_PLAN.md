@@ -195,7 +195,6 @@ Convert C++ file I/O to TypeScript:
 
 | Challenge | Solution |
 |---|---|
-| GTA1 isometric view | Use orthographic camera with custom projection in Babylon |
 | Sprite-based rendering | Use billboards and pre-rendered sprite atlases |
 | 2D physics in a 3D engine | Use Cannon.js with 2D constraints or a custom wrapper |
 | Original GTA1 assets | Use the original GTA1 demo asset flow |
