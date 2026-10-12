@@ -1,5 +1,7 @@
 import * as BABYLON from 'babylonjs';
+import { CityMap, MAP_DIMENSIONS, METERS_PER_MAP_UNIT } from '../map/CityMap';
 import { CameraRig } from './CameraRig';
+import { CityMapRenderer } from './CityMapRenderer';
 import { SceneManager } from './SceneManager';
 
 export class RenderEngine {
@@ -9,6 +11,7 @@ export class RenderEngine {
   private readonly camera: BABYLON.Camera | null;
   private readonly cameraRig: CameraRig | null;
   private readonly sceneManager: SceneManager | null;
+  private cityMapRenderer: CityMapRenderer | null = null;
   private resizeHandler: (() => void) | null = null;
 
   private deltaTime = 0;
@@ -90,6 +93,22 @@ export class RenderEngine {
     this.sceneManager?.showLoadedAssets(assets);
   }
 
+  showCityMap(map: CityMap): void {
+    if (!this.scene) {
+      return;
+    }
+
+    this.cityMapRenderer ??= new CityMapRenderer(this.scene);
+    this.cityMapRenderer.build(map);
+
+    const center = (MAP_DIMENSIONS / 2) * METERS_PER_MAP_UNIT;
+    this.cameraRig?.focusOn(
+      new BABYLON.Vector3(center, 120, -center - 120),
+      new BABYLON.Vector3(center, 0, -center),
+      4,
+    );
+  }
+
   beginFrame(): void {
     const now = performance.now();
 
@@ -125,6 +144,8 @@ export class RenderEngine {
       this.resizeHandler = null;
     }
 
+    this.cityMapRenderer?.dispose();
+    this.cityMapRenderer = null;
     this.engine?.dispose();
     this.scene?.dispose();
   }
