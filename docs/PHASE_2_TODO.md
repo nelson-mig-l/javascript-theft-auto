@@ -62,3 +62,33 @@ There are five real pieces of Phase 2 work remaining:
   - This one is subtle.
   - `loadedAssets` stores results, but `loadAsset()` doesn't check the cache before loading.
   - So it isn't yet true duplicate-load prevention.
+
+### Original data format coverage
+
+Section numbers refer to DMA's *CityScape Data Structure* document (CDS, v12.10); Carnage3D's corrections are in `carnage/docs/CorrectionsToCDS.txt`. Sizes are from `NYC.CMP` / `STYLE001.G24`.
+
+Parsed today:
+
+| Data                                   | CDS            | Implementation                      |
+| -------------------------------------- | -------------- | ----------------------------------- |
+| CMP header, `base`, `column`, `block`  | §2.1–2.4, §2.9 | `parseCmp` (`src/map/CityMap.ts`)   |
+| G24 header, side/lid/aux block tiles   | §3.1, §3.7–3.8 | `parseG24` (`src/map/StyleData.ts`) |
+| G24 block animations                   | §3.1.1         | `parseG24`, `BlockTextureAtlas`     |
+| G24 paged CLUTs and `palette_index`    | §3.5, §3.8.1   | `parseG24`                          |
+
+Not parsed yet (sections are currently skipped by offset):
+
+| Data                         | CDS              | Contents                                                                                                                                                                                                                       | Carnage3D reference                                      | Size in NYC        |
+| ---------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- | ------------------ |
+| CMP `object_pos`             | §2.5–2.5.3       | 14-byte startup records: position, object type, remap, rotation/pitch/roll. `remap >= 128` marks a parked car (`type` indexes `car_info`); traffic light boxes store a roadblock route number in `rotation`. Max 2500 objects + 250 cars. | `GameMapManager::ReadStartupObjects`                     | 42210 bytes        |
+| CMP `route`                  | §2.6–2.6.1       | Police routes (`route_type` 255) and roadblock routes (0–253): `num_vertices`, `route_type`, then `x,y,z` byte vertices.                                                                                                        | `GameMapManager::ReadRoutes` (skipped there too)         | 2423 bytes         |
+| CMP `location_data`          | §2.7             | `x,y,z` byte positions for up to 6 police stations, hospitals and fire stations (plus 3 unused tables); `(0,0,0)` = unused.                                                                                                    | `GameMapManager::ReadServiceBaseLocations`               | 108 bytes (fixed)  |
+| CMP `nav_data`               | §2.8             | 35-byte named rectangles: `x,y,w,h`, sample number, 30-char name. Smaller areas win on overlap; drives district names.                                                                                                          | `GameMapManager::ReadNavData`                            | 980 bytes          |
+| G24 `object_info`            | §3.1.2–3.1.2.1   | Per object type: collision size (pixels, 64 per block), first sprite, weight, aux, status (normal/ignorable/smashable/invisible), break-into list. Animated objects reuse the fields for frame count, cycles/frame and life.      | `StyleData::ReadObjects`                                 | 2040 bytes         |
+| G24 `car_info`               | §3.1.3–3.1.4     | Per car type: size, first sprite, speed/handling descriptors, 12 HLS remaps, vehicle type and model, crane values, physics constants (16.16 fixed point), audio flags, door positions.                                           | `StyleData::ReadVehicles`                                | 6972 bytes         |
+| G24 `sprite_info`            | §3.2.1           | Per sprite: width, height, delta count, size, page position and CLUT (24-bit layout per `CorrectionsToCDS.txt`), then delta sizes and offsets.                                                                                    | `StyleData::ReadSprites`                                 | 14706 bytes        |
+| G24 24-bit remaps            | §3.2.2           | `h,l,s` remaps used by `car_info`; hue > 1000 means load `remapXXX.tga`.                                                                                                                                                        | `StyleData::ReadVehicles`                                | inside `car_info`  |
+| G24 `sprite_graphics`        | §3.2.3–3.2.3.3   | Paged 8-bit sprite pixels followed by deltas (`offset`, `length`, `data` runs relative to the last position).                                                                                                                   | `StyleData::ReadSpriteGraphics`                          | 1137400 bytes      |
+| G24 `sprite_numbers`         | §3.2.4           | Count of sprites per category (arrows, digits, cars, peds, objects, …), used to turn relative sprite numbers into absolute ones.                                                                                                 | `StyleData::ReadSpriteNumbers`                           | 42 bytes           |
+
+Note: CDS §2.4 says `blockd[0]` is the ground-level block, but the NYC data (and Carnage3D) store columns top-down; `parseCmp` follows the data.
