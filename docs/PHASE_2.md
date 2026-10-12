@@ -169,17 +169,14 @@ This is a deployment concern and should not be treated as the main implementatio
 
 ## 2.4 Camera and GTA1 View
 
-The original game uses an isometric-style presentation, and the Babylon.js implementation should keep that behavior in mind while building the render shell.
-
 The initial camera direction should support:
 
-* stable camera orientation
-* configurable zoom
-* configurable camera position
-* support for the game's world coordinate system
-* camera behavior isolated from gameplay entities
+* (must have) stable camera orientation
+* (nice to have) configurable zoom
+* (nice to have) configurable camera position
+* (must have) camera behavior isolated from gameplay entities
 
-The project should prefer a clear, data-driven camera abstraction over hard-coded object behavior. Orthographic projection is a valid target design choice for the GTA1 presentation, but it should be treated as the intended render direction rather than a mandatory completion gate for every intermediate step.
+The project should prefer a clear, data-driven camera abstraction over hard-coded object behavior.
 
 ---
 
