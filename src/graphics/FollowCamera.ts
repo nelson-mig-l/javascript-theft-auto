@@ -5,7 +5,16 @@ export interface FollowCameraPose {
   target: Vec3;
 }
 
-export const FOLLOW_CAMERA_SETTINGS = {
+export interface CameraSettings {
+  readonly height: number;
+  readonly distance: number;
+  readonly lookAheadTime: number;
+  readonly heightPerSpeed: number;
+  readonly focusCatchRate: number;
+  readonly headingCatchRate: number;
+}
+
+export const FOLLOW_CAMERA_SETTINGS: CameraSettings = {
   height: 16,
   distance: 11,
   /** Seconds of travel to look ahead, as Carnage3D's `FollowCameraController` (0.35). */
@@ -16,12 +25,21 @@ export const FOLLOW_CAMERA_SETTINGS = {
   headingCatchRate: 4,
 } as const;
 
+export const TOP_DOWN_CAMERA_SETTINGS: CameraSettings = {
+  height: 40,
+  distance: 0,
+  lookAheadTime: 0,
+  heightPerSpeed: 0,
+  focusCatchRate: 10,
+  headingCatchRate: 4,
+} as const;
+
 /**
  * Chase pose in Babylon space for a target at `focus` facing `heading`
  * (Babylon yaw: forward is (sin, 0, cos)), looking slightly ahead of its travel.
  */
-export function computeFollowCameraPose(focus: Vec3, heading: number, speed: number): FollowCameraPose {
-  const s = FOLLOW_CAMERA_SETTINGS;
+export function computeFollowCameraPose(focus: Vec3, heading: number, speed: number, settings: CameraSettings = FOLLOW_CAMERA_SETTINGS): FollowCameraPose {
+  const s = settings;
   const fx = Math.sin(heading);
   const fz = Math.cos(heading);
   const ahead = speed * s.lookAheadTime;

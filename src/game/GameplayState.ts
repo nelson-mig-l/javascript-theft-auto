@@ -9,6 +9,7 @@ export class GameplayState implements GameState {
   private readonly id = 'gameplay';
   private map: CityMap | null = null;
   private car: Car | null = null;
+  private cameraTogglePressed = false;
 
   constructor(
     private readonly input?: InputManager,
@@ -37,6 +38,13 @@ export class GameplayState implements GameState {
 
     this.car.update(delta, this.readControls(), this.map);
     this.renderEngine?.updateCar(this.car, delta);
+
+    // Check for camera toggle (only on key press, not hold)
+    const isTogglePressed = this.input?.isPressed('cameraToggle') ?? false;
+    if (isTogglePressed && !this.cameraTogglePressed) {
+      this.renderEngine?.toggleCameraMode();
+    }
+    this.cameraTogglePressed = isTogglePressed;
   }
 
   render(): void {

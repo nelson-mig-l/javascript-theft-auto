@@ -1,5 +1,5 @@
 import * as BABYLON from 'babylonjs';
-import { approachAngle, catchFactor, computeFollowCameraPose, FOLLOW_CAMERA_SETTINGS, Vec3 } from './FollowCamera';
+import { approachAngle, catchFactor, computeFollowCameraPose, FOLLOW_CAMERA_SETTINGS, TOP_DOWN_CAMERA_SETTINGS, Vec3 } from './FollowCamera';
 
 export interface FollowTarget {
   /** Babylon-space position. */
@@ -16,6 +16,7 @@ export class CameraRig {
   private focus: Vec3 | null = null;
   private heading = 0;
   private speed = 0;
+  private useTopDownView = false;
 
   constructor(scene: BABYLON.Scene) {
     this.camera = new BABYLON.FreeCamera('camera', new BABYLON.Vector3(0, 5, -10), scene);
@@ -33,7 +34,7 @@ export class CameraRig {
       this.heading = target.heading;
       this.speed = target.speed;
     } else {
-      const s = FOLLOW_CAMERA_SETTINGS;
+      const s = this.useTopDownView ? TOP_DOWN_CAMERA_SETTINGS : FOLLOW_CAMERA_SETTINGS;
       const focusFactor = catchFactor(s.focusCatchRate, deltaSeconds);
       const headingFactor = catchFactor(s.headingCatchRate, deltaSeconds);
       for (let i = 0; i < 3; ++i) {
@@ -43,12 +44,21 @@ export class CameraRig {
       this.speed += (target.speed - this.speed) * headingFactor;
     }
 
-    const pose = computeFollowCameraPose(this.focus, this.heading, this.speed);
+    const settings = this.useTopDownView ? TOP_DOWN_CAMERA_SETTINGS : FOLLOW_CAMERA_SETTINGS;
+    const pose = computeFollowCameraPose(this.focus, this.heading, this.speed, settings);
     this.camera.position.set(...pose.position);
     this.camera.setTarget(new BABYLON.Vector3(...pose.target));
   }
 
   getCamera(): BABYLON.FreeCamera {
     return this.camera;
+  }
+
+  toggleCameraMode(): void {
+    this.useTopDownView = !this.useTopDownView;
+  }
+
+  isTopDownView(): boolean {
+    return this.useTopDownView;
   }
 }

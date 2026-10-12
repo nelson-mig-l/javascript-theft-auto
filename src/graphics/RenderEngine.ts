@@ -123,6 +123,10 @@ export class RenderEngine {
     this.cameraRig?.follow({ position: [car.x, car.z, -car.y], heading: car.heading, speed: car.speed }, deltaSeconds);
   }
 
+  toggleCameraMode(): void {
+    this.cameraRig?.toggleCameraMode();
+  }
+
   beginFrame(): void {
     const now = performance.now();
 

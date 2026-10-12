@@ -1,4 +1,4 @@
-export type GamepadAction = 'moveUp' | 'moveDown' | 'moveLeft' | 'moveRight' | 'action' | 'shoot' | 'hudToggle' | 'interact';
+export type GamepadAction = 'moveUp' | 'moveDown' | 'moveLeft' | 'moveRight' | 'action' | 'shoot' | 'hudToggle' | 'interact' | 'cameraToggle';
 
 export class GamepadInput {
   private readonly state = new Map<GamepadAction, boolean>();

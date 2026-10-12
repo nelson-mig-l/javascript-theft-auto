@@ -9,7 +9,8 @@ export type InputAction =
   | 'action'
   | 'shoot'
   | 'hudToggle'
-  | 'interact';
+  | 'interact'
+  | 'cameraToggle';
 
 export type InputKeyMap = Partial<Record<InputAction, string[]>>;
 
@@ -27,6 +28,7 @@ export class InputManager {
     shoot: ['control', 'ctrl'],
     hudToggle: ['tab'],
     interact: ['enter', 'f'],
+    cameraToggle: ['c'],
   };
 
   bindKeyboard(): void {
