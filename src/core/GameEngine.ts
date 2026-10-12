@@ -1,8 +1,9 @@
-import { AssetLoader } from '../assets/AssetLoader';
+import { AssetLoader, LoadedAsset } from '../assets/AssetLoader';
 import { GameplayState } from '../game/GameplayState';
 import { MainMenuState } from '../game/MainMenuState';
 import { InputManager } from '../input/InputManager';
 import { RenderEngine } from '../graphics/RenderEngine';
+import { parseCmp } from '../map/CityMap';
 import { createEngineConfig, EngineConfig } from './EngineConfig';
 import { GameLoop } from './GameLoop';
 import { GameState, StateMachine } from './StateMachine';
@@ -58,6 +59,7 @@ export class GameEngine {
     this.started = true;
     const assets = await this.assetLoader.loadAll();
     this.renderEngine.showLoadedAssets(assets);
+    this.showCityMap(assets.maps['map.nyc']);
     this.inputManager.bindKeyboard();
     this.stateMachine.enter('mainMenu');
     this.gameLoop.start();
@@ -65,6 +67,15 @@ export class GameEngine {
 
   stop(): void {
     this.gameLoop.stop();
+  }
+
+  private showCityMap(asset: LoadedAsset | undefined): void {
+    if (!asset?.ready || !(asset.resource instanceof ArrayBuffer)) {
+      console.warn('[GameEngine] City map not loaded', asset?.error ?? '');
+      return;
+    }
+
+    this.renderEngine.showCityMap(parseCmp(asset.resource));
   }
 
   private tick(delta: number): void {

@@ -8,7 +8,7 @@ export type LoadedAsset = {
   ready: boolean;
   url: string;
   metadata?: Record<string, unknown>;
-  resource?: HTMLImageElement | FontFace | Howl;
+  resource?: HTMLImageElement | FontFace | Howl | ArrayBuffer;
   error?: string;
 };
 
@@ -17,6 +17,7 @@ export type LoadedAssetBuckets = {
   fonts: Record<string, LoadedAsset>;
   sounds: Record<string, LoadedAsset>;
   sprites: Record<string, LoadedAsset>;
+  maps: Record<string, LoadedAsset>;
 };
 
 export class AssetLoader {
@@ -41,6 +42,7 @@ export class AssetLoader {
       fonts: {},
       sounds: {},
       sprites: {},
+      maps: {},
     };
 
     for (const asset of this.manifest.assets) {
@@ -68,7 +70,7 @@ export class AssetLoader {
     }
   }
 
-  private async loadResource(asset: AssetDescriptor, url: string): Promise<HTMLImageElement | FontFace | Howl> {
+  private async loadResource(asset: AssetDescriptor, url: string): Promise<HTMLImageElement | FontFace | Howl | ArrayBuffer> {
     switch (asset.type) {
       case 'texture':
       case 'sprite':
@@ -77,6 +79,8 @@ export class AssetLoader {
         return this.loadFont(asset, url);
       case 'sound':
         return this.loadSound(asset, url);
+      case 'map':
+        return this.loadBinary(url);
     }
   }
 
@@ -97,6 +101,13 @@ export class AssetLoader {
     await font.load();
     document.fonts.add(font);
     return font;
+  }
+
+  private async loadBinary(url: string): Promise<ArrayBuffer> {
+    if (typeof fetch === 'undefined') throw new Error(`Cannot load binary data without fetch: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to load binary data: ${url} (${response.status})`);
+    return response.arrayBuffer();
   }
 
   private loadSound(asset: AssetDescriptor, url: string): Promise<Howl> {

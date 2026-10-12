@@ -1,4 +1,4 @@
-export type AssetType = 'texture' | 'font' | 'sound' | 'sprite';
+export type AssetType = 'texture' | 'font' | 'sound' | 'sprite' | 'map';
 
 export interface AssetDescriptor {
   id: string;
@@ -42,6 +42,11 @@ export function createDefaultAssetManifest(): AssetManifest {
         type: 'sound',
         src: 'test/click.wav',
         metadata: { loop: false },
+      },
+      {
+        id: 'map.nyc',
+        type: 'map',
+        src: 'data/NYC.CMP',
       },
     ],
   };

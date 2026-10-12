@@ -48,10 +48,13 @@ describe('AssetLoader', () => {
   it('loads every asset from the real default manifest', async () => {
     const manifest = createDefaultAssetManifest();
     const loader = new AssetLoader(manifest);
+    const mapData = new ArrayBuffer(8);
+    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, arrayBuffer: async () => mapData }));
+    vi.stubGlobal('fetch', fetchMock);
 
     const loaded = await loader.loadAll();
 
-    expect(manifest.assets).toHaveLength(4);
+    expect(manifest.assets).toHaveLength(5);
     expect(loaded.textures['test.texture']).toMatchObject({
       id: 'test.texture',
       type: 'texture',
@@ -85,6 +88,29 @@ describe('AssetLoader', () => {
     expect(Object.values(loaded.fonts).every((asset) => asset.ready)).toBe(true);
     expect(Object.values(loaded.sprites).every((asset) => asset.ready)).toBe(true);
     expect(Object.values(loaded.sounds).every((asset) => asset.ready)).toBe(true);
+    expect(loaded.maps['map.nyc']).toMatchObject({
+      id: 'map.nyc',
+      type: 'map',
+      url: './assets/data/NYC.CMP',
+      ready: true,
+      resource: mapData,
+    });
+    expect(fetchMock).toHaveBeenCalledWith('./assets/data/NYC.CMP');
+  });
+
+  it('reports failed binary resources instead of marking them ready', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404 })));
+
+    const loader = new AssetLoader({
+      version: '1.0.0',
+      basePath: './assets',
+      assets: [{ id: 'missing.map', type: 'map', src: 'data/MISSING.CMP' }],
+    });
+
+    const asset = await loader.loadAsset(loader.getManifest().assets[0]);
+
+    expect(asset.ready).toBe(false);
+    expect(asset.error).toContain('404');
   });
 
   it('reports failed image resources instead of marking them ready', async () => {

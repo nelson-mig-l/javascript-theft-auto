@@ -14,6 +14,12 @@ export class CameraRig {
     }
   }
 
+  focusOn(position: BABYLON.Vector3, target: BABYLON.Vector3, speed = this.camera.speed): void {
+    this.camera.position.copyFrom(position);
+    this.camera.setTarget(target);
+    this.camera.speed = speed;
+  }
+
   getCamera(): BABYLON.FreeCamera {
     return this.camera;
   }
