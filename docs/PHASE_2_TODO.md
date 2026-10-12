@@ -25,7 +25,7 @@
 | **2.3 Duplicate-load prevention**    | Currently reloads assets                                 | ❌ Missing                 |
 | **2.3 `.sty` parsing**               | G24 block tiles, palettes and animations; sprites pending | ⚠️ Partial                |
 | **2.3 Relative paths**               | `./assets/...`                                           | ✅ Done                    |
-| **2.4 GTA1 camera**                  | Perspective chase camera following the player car        | ⚠️ Partial                |
+| **2.4 GTA1 camera**                  | Babylon FollowCamera                                     | ⚠️ Partial                |
 | **2.4 Orthographic/isometric view**  | Not implemented                                          | ❌ Missing                 |
 | **2.4 Configurable zoom**            | No abstraction                                           | ❌ Missing                 |
 | **2.4 Configurable camera position** | Hard-coded initial position                              | ⚠️ Partial                |
