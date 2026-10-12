@@ -1,4 +1,4 @@
-export type AssetType = 'texture' | 'font' | 'sound' | 'sprite' | 'map';
+export type AssetType = 'texture' | 'font' | 'sound' | 'sprite' | 'map' | 'style';
 
 export interface AssetDescriptor {
   id: string;
@@ -47,6 +47,11 @@ export function createDefaultAssetManifest(): AssetManifest {
         id: 'map.nyc',
         type: 'map',
         src: 'data/NYC.CMP',
+      },
+      {
+        id: 'style.001',
+        type: 'style',
+        src: 'data/STYLE001.G24',
       },
     ],
   };

@@ -1,5 +1,6 @@
 import * as BABYLON from 'babylonjs';
 import { CityMap, MAP_DIMENSIONS, METERS_PER_MAP_UNIT } from '../map/CityMap';
+import { StyleData } from '../map/StyleData';
 import { CameraRig } from './CameraRig';
 import { CityMapRenderer } from './CityMapRenderer';
 import { SceneManager } from './SceneManager';
@@ -93,13 +94,13 @@ export class RenderEngine {
     this.sceneManager?.showLoadedAssets(assets);
   }
 
-  showCityMap(map: CityMap): void {
+  showCityMap(map: CityMap, style?: StyleData): void {
     if (!this.scene) {
       return;
     }
 
     this.cityMapRenderer ??= new CityMapRenderer(this.scene);
-    this.cityMapRenderer.build(map);
+    this.cityMapRenderer.build(map, style);
 
     const center = (MAP_DIMENSIONS / 2) * METERS_PER_MAP_UNIT;
     this.cameraRig?.focusOn(
