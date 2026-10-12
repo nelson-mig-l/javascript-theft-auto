@@ -1,7 +1,9 @@
 import * as BABYLON from 'babylonjs';
 import { CityMap, MAP_DIMENSIONS, METERS_PER_MAP_UNIT } from '../map/CityMap';
 import { StyleData } from '../map/StyleData';
+import { Car } from '../game/Car';
 import { CameraRig } from './CameraRig';
+import { CarRenderer } from './CarRenderer';
 import { CityMapRenderer } from './CityMapRenderer';
 import { SceneManager } from './SceneManager';
 
@@ -13,6 +15,7 @@ export class RenderEngine {
   private readonly cameraRig: CameraRig | null;
   private readonly sceneManager: SceneManager | null;
   private cityMapRenderer: CityMapRenderer | null = null;
+  private carRenderer: CarRenderer | null = null;
   private resizeHandler: (() => void) | null = null;
 
   private deltaTime = 0;
@@ -106,8 +109,18 @@ export class RenderEngine {
     this.cameraRig?.focusOn(
       new BABYLON.Vector3(center, 120, -center - 120),
       new BABYLON.Vector3(center, 0, -center),
-      4,
     );
+  }
+
+  /** Draws the car and trails it with the follow camera. */
+  updateCar(car: Car, deltaSeconds: number): void {
+    if (!this.scene) {
+      return;
+    }
+
+    this.carRenderer ??= new CarRenderer(this.scene);
+    this.carRenderer.update(car);
+    this.cameraRig?.follow({ position: [car.x, car.z, -car.y], heading: car.heading, speed: car.speed }, deltaSeconds);
   }
 
   beginFrame(): void {
@@ -145,6 +158,8 @@ export class RenderEngine {
       this.resizeHandler = null;
     }
 
+    this.carRenderer?.dispose();
+    this.carRenderer = null;
     this.cityMapRenderer?.dispose();
     this.cityMapRenderer = null;
     this.engine?.dispose();

@@ -3,7 +3,7 @@ import { GameplayState } from '../game/GameplayState';
 import { MainMenuState } from '../game/MainMenuState';
 import { InputManager } from '../input/InputManager';
 import { RenderEngine } from '../graphics/RenderEngine';
-import { parseCmp } from '../map/CityMap';
+import { CityMap, parseCmp } from '../map/CityMap';
 import { parseG24, StyleData } from '../map/StyleData';
 import { createEngineConfig, EngineConfig } from './EngineConfig';
 import { GameLoop } from './GameLoop';
@@ -16,6 +16,7 @@ export class GameEngine {
   private readonly inputManager: InputManager;
   private readonly stateMachine: StateMachine;
   private readonly gameLoop: GameLoop;
+  private readonly gameplayState: GameplayState;
   private started = false;
 
   constructor(canvas?: HTMLCanvasElement | string | null, config: Partial<EngineConfig> = {}) {
@@ -31,7 +32,8 @@ export class GameEngine {
       render: () => this.renderEngine.render(),
     });
     this.stateMachine.register('mainMenu', new MainMenuState());
-    this.stateMachine.register('gameplay', new GameplayState());
+    this.gameplayState = new GameplayState(this.inputManager, this.renderEngine);
+    this.stateMachine.register('gameplay', this.gameplayState);
 
     this.gameLoop = new GameLoop((delta) => this.tick(delta), this.config);
   }
@@ -60,9 +62,14 @@ export class GameEngine {
     this.started = true;
     const assets = await this.assetLoader.loadAll();
     this.renderEngine.showLoadedAssets(assets);
-    this.showCityMap(assets.maps['map.nyc'], assets);
+    const map = this.showCityMap(assets.maps['map.nyc'], assets);
     this.inputManager.bindKeyboard();
-    this.stateMachine.enter('mainMenu');
+    if (map) {
+      this.gameplayState.setCityMap(map);
+      this.stateMachine.enter('gameplay');
+    } else {
+      this.stateMachine.enter('mainMenu');
+    }
     this.gameLoop.start();
   }
 
@@ -70,14 +77,15 @@ export class GameEngine {
     this.gameLoop.stop();
   }
 
-  private showCityMap(asset: LoadedAsset | undefined, assets: LoadedAssetBuckets): void {
+  private showCityMap(asset: LoadedAsset | undefined, assets: LoadedAssetBuckets): CityMap | null {
     if (!asset?.ready || !(asset.resource instanceof ArrayBuffer)) {
       console.warn('[GameEngine] City map not loaded', asset?.error ?? '');
-      return;
+      return null;
     }
 
     const map = parseCmp(asset.resource);
     this.renderEngine.showCityMap(map, this.loadStyle(assets.styles[`style.${String(map.styleNumber).padStart(3, '0')}`]));
+    return map;
   }
 
   private loadStyle(asset: LoadedAsset | undefined): StyleData | undefined {

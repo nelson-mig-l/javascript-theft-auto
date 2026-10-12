@@ -1,5 +1,8 @@
 import { EngineConfig, DEFAULT_ENGINE_CONFIG } from './EngineConfig';
 
+/** Longest frame step passed on, so stalls (e.g. a hidden tab) don't cause huge jumps. */
+const MAX_FRAME_DELTA = 0.1;
+
 export class GameLoop {
   private rafId: number | null = null;
   private active = false;
@@ -37,7 +40,7 @@ export class GameLoop {
     const deltaTime = this.lastFrameTimestamp === 0 ? 0 : (timestamp - this.lastFrameTimestamp) / 1000;
     this.lastFrameTimestamp = timestamp;
 
-    this.onTick(Math.min(deltaTime, 1 / this.config.targetFps));
+    this.onTick(Math.min(deltaTime, MAX_FRAME_DELTA));
 
     this.rafId = window.requestAnimationFrame((nextTimestamp) => this.step(nextTimestamp));
   }
