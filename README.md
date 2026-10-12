@@ -4,7 +4,7 @@
 
 A ~~JavaScript~~ TypeScript port of the Carnage3D game engine, built around Babylon.js and modern browser APIs.
 
-> **Project status:** Phase 1 fully implemented. The project is currently an engine/application shell and is not yet a complete playable port.
+> **Project status:** Phase 2 is in progress. The project can parse and render GTA1 city-map geometry with G24 textures and includes a basic WASD-driven car with camera modes, but it is not yet a complete playable port.
 
 ## Tech stack
 
@@ -73,24 +73,21 @@ Vite uses a relative base path so the generated site works both under the GitHub
 
 If the deployment model changes, revisit these paths together; changing only one can cause assets to work in one hosting environment but fail in the other.
 
-## Phase 1
+## Phase 2
 
-Phase 1 establishes the basic runtime structure required before porting gameplay systems.
+Phase 2 moves beyond the initial runtime shell and begins implementing the core GTA1 world and driving loop.
 
-Current Phase 1 components include:
+Implemented so far:
 
-- TypeScript project configuration
-- Vite application shell
-- Babylon.js rendering setup
-- Game engine and game loop
-- State machine
-- Input abstraction
-- Keyboard and gamepad input classes
-- Asset loader and asset manifest skeleton
-- Placeholder menu and gameplay states
-- Initial smoke tests
+- Parse GTA1 `.CMP` city maps, including the six map layers, columns, and block metadata.
+- Parse `.G24` style data for block textures, palettes, and block animations.
+- Render city blocks in Babylon.js using the parsed style textures.
+- Drive a basic car with WASD controls, steering, acceleration, braking/reverse, and preliminary map collision/height handling.
+- Follow camera that tracks the car, plus a toggleable top-down camera mode.
+- Tests for CMP parsing and city-mesh generation, plus documentation of parsed and not-yet-parsed CDS sections.
+- Developer tools for inspecting and converting GTA1/Carnage3D map and style assets.
 
-Some systems are intentionally skeletal at this stage. The goal is to establish the architecture and runtime foundation rather than implement the complete game.
+This is an incremental port: these features provide a first world-rendering and driving prototype, not complete parity with Carnage3D or the original GTA1 game.
 
 ## Architecture
 
@@ -111,16 +108,18 @@ The intended engine structure is centered around `GameEngine`, which coordinates
 
 ## Current limitations
 
-This repository is still under active development. In particular:
+This repository is still under active development. Current limitations include:
 
-- Gameplay systems are not yet fully implemented.
-- Input systems exist but are not yet fully integrated into the runtime.
-- The asset loader is currently a foundation/skeleton rather than a complete asset pipeline.
-- Menu and gameplay states are placeholders.
-- The test suite contains mocked Babylon.js components and does not replace testing in a real browser/WebGL environment.
+- The current driving loop is a prototype; handling, collision response, slopes, vehicle physics, and camera behavior still need validation against the original game.
+- CMP parsing/rendering covers the map's base, column, and block data, but startup objects, routes, service locations, and named district/navigation data are not yet parsed into runtime systems.
+- G24 support currently focuses on block tiles, palettes, and animations. Sprite metadata/graphics and deltas, sprite category numbering, object metadata, vehicle metadata/remaps, and related runtime rendering are not yet fully integrated.
+- The car is a basic controllable prototype; traffic, pedestrians, police, emergency services, missions, weapons, pickups, damage, and full gameplay rules are not implemented.
+- The broader audio, UI/menu, and game-state flows remain incomplete.
+- Input is integrated for the basic keyboard driving controls and camera toggle, but full gamepad/action behavior and the original game's input semantics remain incomplete.
+- Tests cover selected parsing and geometry logic; they do not replace running the game with real GTA1 assets in a browser/WebGL environment.
 - Production deployment requires the Vite bundle rather than the TypeScript type-check alone.
 
-These are expected during the early porting phases and should not be interpreted as a finished-game feature set.
+The CDS coverage table in the project planning notes identifies which file sections are parsed and which remain pending. These limitations mean the project is a work-in-progress port, not a complete game.
 
 ## Testing
 
@@ -153,9 +152,18 @@ Then continue implementing the next phase of the port.
 
 ## Roadmap
 
-The immediate objective is to finish stabilizing the Phase 1 runtime foundation and then proceed with the gameplay systems required for the Carnage3D port.
+The immediate objective is to continue Phase 2 by making the world and driving prototype more faithful and data-driven.
 
-Future phases will progressively replace placeholders with the original game's gameplay, assets, physics, input behavior, UI, and other systems.
+Priority areas:
+
+1. Complete and validate `.CMP` parsing for startup objects, routes, service locations, and navigation/district rectangles.
+2. Extend `.G24` parsing to sprite metadata, sprite graphics/deltas, sprite numbering, object metadata, and vehicle metadata/remaps; connect those records to runtime asset loading.
+3. Improve city rendering and vehicle behavior against Carnage3D, including collision/height edge cases, slopes, camera tuning, and textured geometry validation.
+4. Add world entities such as static objects, vehicles, pedestrians, traffic, and service/police systems as the underlying data becomes available.
+5. Replace remaining placeholder UI/gameplay flows and progressively implement the original game's mechanics, audio, and mission systems.
+6. Expand automated tests and verify the build in a real browser with representative GTA1 assets.
+
+The order may change as format findings and runtime testing expose dependencies. The goal is to build on the current map-rendering and driving prototype rather than treating Phase 2 as complete.
 
 ## AI Usage
 
