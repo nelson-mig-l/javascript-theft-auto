@@ -7,6 +7,8 @@ import {
   MapBlockInfo,
   METERS_PER_MAP_UNIT,
 } from './CityMap';
+import { BlockTextureAtlas, getFaceTextureVariant } from './BlockTextureAtlas';
+import { StyleData } from './StyleData';
 
 export interface MapArea {
   x: number;
@@ -20,11 +22,21 @@ export interface CityMeshData {
   positions: Float32Array;
   /** rgba quadruplets. */
   colors: Float32Array;
+  /** Atlas uv pairs; only present when built with block textures. */
+  uvs?: Float32Array;
+  /** One value per vertex: 1 where palette index 0 is see-through (flat blocks). */
+  transparency: Float32Array;
   indices: Uint32Array;
+}
+
+export interface CityMeshTextures {
+  style: StyleData;
+  atlas: BlockTextureAtlas;
 }
 
 type Vec3 = [number, number, number];
 type Rgb = [number, number, number];
+type Texcoord = [number, number];
 
 const GROUND_COLORS: Record<GroundType, Rgb> = {
   [GroundType.Air]: [0.55, 0.55, 0.58],
@@ -44,15 +56,17 @@ const FACE_SHADE: Record<BlockFace, number> = {
 };
 
 /**
- * Builds untextured geometry for every block face in `area`, porting Carnage3D's
- * `GameMapHelpers::BuildMapMesh`/`PutBlockFace`.
+ * Builds geometry for every block face in `area`, porting Carnage3D's
+ * `GameMapHelpers::BuildMapMesh`/`PutBlockFace`. Without `textures`, faces are vertex colored only.
  *
  * Carnage3D uses a right-handed space with map Y along +Z; Babylon is left-handed,
  * so map Y is mapped to -Z to keep north pointing away from a default camera.
  */
-export function buildCityMeshData(map: CityMap, area: MapArea): CityMeshData {
+export function buildCityMeshData(map: CityMap, area: MapArea, textures?: CityMeshTextures): CityMeshData {
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
+  const transparency: number[] = [];
   const indices: number[] = [];
 
   for (let layer = 0; layer < MAP_LAYERS_COUNT; ++layer) {
@@ -70,6 +84,13 @@ export function buildCityMeshData(map: CityMap, area: MapArea): CityMeshData {
           const [r, g, b] = getFaceColor(map, block, face as BlockFace, x, y, layer);
           for (let i = 0; i < 4; ++i) {
             colors.push(r, g, b, 1);
+            transparency.push(block.isFlat ? 1 : 0);
+          }
+          if (textures) {
+            const cell = textures.atlas.getCellIndex(getFaceTextureVariant(textures.style, block, face as BlockFace)) ?? 0;
+            for (const [u, v] of getFaceTexcoords(block, face as BlockFace)) {
+              uvs.push(...textures.atlas.getTexcoord(cell, u, v));
+            }
           }
           indices.push(baseVertex + 3, baseVertex + 1, baseVertex + 0, baseVertex + 3, baseVertex + 2, baseVertex + 1);
         }
@@ -80,8 +101,38 @@ export function buildCityMeshData(map: CityMap, area: MapArea): CityMeshData {
   return {
     positions: new Float32Array(positions),
     colors: new Float32Array(colors),
+    uvs: textures ? new Float32Array(uvs) : undefined,
+    transparency: new Float32Array(transparency),
     indices: new Uint32Array(indices),
   };
+}
+
+/** Returns tile-local texcoords for the four face vertices, applying lid rotation and side flips. */
+export function getFaceTexcoords(block: MapBlockInfo, face: BlockFace): Texcoord[] {
+  const base: Texcoord[] = [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
+  ];
+  const texcoords: Texcoord[] = new Array(4);
+  const rotation = face === BlockFace.Lid ? block.lidRotation : 0;
+  for (let i = 0; i < 4; ++i) {
+    texcoords[(rotation + i) % 4] = base[i];
+  }
+
+  if (face !== BlockFace.Lid) {
+    const flipLeftRight =
+      (block.isFlat !== block.flipLeftRightFaces && face === BlockFace.E) || (block.flipLeftRightFaces && face === BlockFace.W);
+    const flipTopBottom =
+      (block.isFlat !== block.flipTopBottomFaces && face === BlockFace.S) || (block.flipTopBottomFaces && face === BlockFace.N);
+    // Carnage3D swaps the same vertex pairs for both flips, so applying both cancels out.
+    if (flipLeftRight !== flipTopBottom) {
+      [texcoords[0], texcoords[1]] = [texcoords[1], texcoords[0]];
+      [texcoords[2], texcoords[3]] = [texcoords[3], texcoords[2]];
+    }
+  }
+  return texcoords;
 }
 
 /** Returns the four face corners in Carnage3D map space (meters, Y up, map Y along +Z). */

@@ -54,7 +54,7 @@ describe('AssetLoader', () => {
 
     const loaded = await loader.loadAll();
 
-    expect(manifest.assets).toHaveLength(5);
+    expect(manifest.assets).toHaveLength(6);
     expect(loaded.textures['test.texture']).toMatchObject({
       id: 'test.texture',
       type: 'texture',
@@ -96,6 +96,13 @@ describe('AssetLoader', () => {
       resource: mapData,
     });
     expect(fetchMock).toHaveBeenCalledWith('./assets/data/NYC.CMP');
+    expect(loaded.styles['style.001']).toMatchObject({
+      type: 'style',
+      url: './assets/data/STYLE001.G24',
+      ready: true,
+      resource: mapData,
+    });
+    expect(fetchMock).toHaveBeenCalledWith('./assets/data/STYLE001.G24');
   });
 
   it('reports failed binary resources instead of marking them ready', async () => {

@@ -23,7 +23,7 @@
 | **2.3 Model/mesh data loading**      | Not implemented                                          | ❌ Missing                 |
 | **2.3 Resource caching**             | `Map<string, LoadedAsset>` exists                        | ⚠️ Partial                |
 | **2.3 Duplicate-load prevention**    | Currently reloads assets                                 | ❌ Missing                 |
-| **2.3 `.sty` parsing**               | Not implemented                                          | ⏭️ Intentionally deferred |
+| **2.3 `.sty` parsing**               | G24 block tiles, palettes and animations; sprites pending | ⚠️ Partial                |
 | **2.3 Relative paths**               | `./assets/...`                                           | ✅ Done                    |
 | **2.4 GTA1 camera**                  | Camera exists, but perspective FreeCamera                | ❌ Not yet                 |
 | **2.4 Orthographic/isometric view**  | Not implemented                                          | ❌ Missing                 |

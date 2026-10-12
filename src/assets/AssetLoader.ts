@@ -18,6 +18,7 @@ export type LoadedAssetBuckets = {
   sounds: Record<string, LoadedAsset>;
   sprites: Record<string, LoadedAsset>;
   maps: Record<string, LoadedAsset>;
+  styles: Record<string, LoadedAsset>;
 };
 
 export class AssetLoader {
@@ -43,6 +44,7 @@ export class AssetLoader {
       sounds: {},
       sprites: {},
       maps: {},
+      styles: {},
     };
 
     for (const asset of this.manifest.assets) {
@@ -80,6 +82,7 @@ export class AssetLoader {
       case 'sound':
         return this.loadSound(asset, url);
       case 'map':
+      case 'style':
         return this.loadBinary(url);
     }
   }
